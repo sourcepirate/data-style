@@ -40,26 +40,22 @@ class TextField(BaseField):
     base element is used.
     """
 
-    def __init__(self, selector=None, coerce=None):
+    def __init__(self, selector=None, coerce=None, repeated=False):
         super(TextField, self).__init__(coerce=coerce)
         self.selector = selector
+        self.repeated = repeated
 
     def clean(self, value):
         value = super(TextField, self).clean(value)
-        if value is not None:
-            return value.strip()
+        return value.strip()
+
 
     def get_value(self, q):
-        value = None
-        tag = q
-        if self.selector is not None:
-            tag = q.select(self.selector)
-            if len(tag) > 0:
-            	tag = tag[0]
-        if tag:
-            value = tag.text
-
-        return value
+    	if not self.selector:
+    		return None
+    	tag = q.select(self.selector)
+    	mapped = map(lambda x: self.clean(x.text), tag)
+    	return next(mapped) if not self.repeated else list(mapped)
 
 class AttributeValueField(TextField):
     """Simple text field, getting an attribute value.
@@ -68,9 +64,9 @@ class AttributeValueField(TextField):
     base element is used.
     """
 
-    def __init__(self, selector=None, attr=None, coerce=None):
+    def __init__(self, selector=None, attr=None, coerce=None, repeated=False):
         super(AttributeValueField, self).__init__(
-            selector=selector, coerce=coerce)
+            selector=selector, coerce=coerce, repeated=False)
         self.attr = attr
 
     def get_value(self, q):
@@ -81,10 +77,11 @@ class AttributeValueField(TextField):
         else:
             tag = q
 
-        if tag and self.attr is not None:
-            html_elem = tag[0]
-            value = html_elem.get(self.attr)
-            return value
+        if tag and self.attr:
+            mapped = map(lambda x: x.get(self.attr), tag)
+            return next(mapped) if not self.repeated else list(mapped)
+        else:
+        	return None
 
 class RelatedItem(object):
     """Set a related  item.
@@ -112,9 +109,12 @@ class RelatedItem(object):
             # default: use given item object as base
             source = instance._q
 
+            kwargs = {}
+
             if self.selector:
                 # if selector provided, traversing from the item
-                source = source.select(self.selector)
+                source = source.select_one(self.selector)
+                kwargs['content'] = str(source)
 
             if self.attr:
                 # if attr is provided,
@@ -122,12 +122,11 @@ class RelatedItem(object):
                 html_elem = source[0]
                 path = html_elem.get(self.attr)
                 source = self._build_url(instance, path)
+                kwargs['url']  = source
 
             related_item = self.item
-            if related_item == 'self':
-                # if 'self', use parent item class
-                related_item = instance.__class__
-            value = await related_item.all_from(url=source)
+            print(kwargs)
+            value = await related_item.all_from(**kwargs)
             instance.__dict__[self.label] = value
         return value
 
@@ -185,8 +184,7 @@ class Item(with_metaclass(ItemMeta)):
 
         self._q = item
         for field_name, field in self._fields.items():
-            raw_value = field.get_value(self._q)
-            value = field.clean(raw_value)
+            value = field.get_value(self._q)
             clean_field = getattr(self, 'clean_%s' % field_name, None)
             if clean_field:
                 value = clean_field(value)
@@ -196,14 +194,21 @@ class Item(with_metaclass(ItemMeta)):
 
     @classmethod
     async def _get_items(cls, **kwargs):
-        pq = await fetch(**kwargs)
-        items = _q(pq).select(cls._meta.selector)
-        return items
+    	if kwargs.get('url'):
+    		pq = await fetch(**kwargs)
+    	else:
+    		pq = kwargs.get("content", None)
+
+    	if not kwargs.get('relational', False):
+    		items = _q(pq).select(cls._meta.selector)
+    	else:
+    		items = _q(pq)
+    	return items
 
     @classmethod
-    async def all_from(cls, *args, **kwargs):
+    async def all_from(cls, **kwargs):
         """Query for items passing args explicitly."""
-        pq_items = await cls._get_items(*args, **kwargs)
+        pq_items = await cls._get_items(**kwargs)
         return [cls(item=i) for i in pq_items]
 
     @classmethod

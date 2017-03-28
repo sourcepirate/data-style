@@ -5,7 +5,7 @@ import aiohttp
 DEFAULT_HEADERS = {'User-Agent': 'Mozilla/5.0'}
 
 
-async def fetch(url=None, headers=DEFAULT_HEADERS, params={}, payload={}, method="GET", loop=None):
+async def fetch(url="", headers=DEFAULT_HEADERS, params={}, payload={}, method="GET", loop=None):
     """fetch content from the url"""
     if not url:
     	return
