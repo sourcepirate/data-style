@@ -7,10 +7,12 @@ from urllib.parse import urljoin, urlparse
 
 
 def is_absoulte(url):
-	return bool(urlparse(url).netloc)
+    """check whether the url is absolute"""
+    return bool(urlparse(url).netloc)
 
 def with_metaclass(meta, base=object):
-	return meta("NewBase", (base,), {})
+    """create a new base for meta class"""
+    return meta("NewBase", (base,), {})
 
 class BaseField(object):
     """Base field."""
@@ -29,7 +31,7 @@ class BaseField(object):
             value = self._coerce(value)
         return value
 
-    def get_value(self, pq):
+    def get_value(self, value):
         """Extract value from given _q element."""
         raise NotImplementedError("Custom fields have to implement this method")
 
@@ -49,13 +51,13 @@ class TextField(BaseField):
         value = super(TextField, self).clean(value)
         return value.strip()
 
-
     def get_value(self, q):
-    	if not self.selector:
-    		return None
-    	tag = q.select(self.selector)
-    	mapped = map(lambda x: self.clean(x.text), tag)
-    	return next(mapped) if not self.repeated else list(mapped)
+        """get value from query"""
+        if not self.selector:
+            return None
+        tag = q.select(self.selector)
+        mapped = map(lambda x: self.clean(x.text), tag)
+        return next(mapped) if not self.repeated else list(mapped)
 
 class AttributeValueField(TextField):
     """Simple text field, getting an attribute value.
@@ -68,6 +70,7 @@ class AttributeValueField(TextField):
         super(AttributeValueField, self).__init__(
             selector=selector, coerce=coerce, repeated=False)
         self.attr = attr
+        self.repeated = repeated
 
     def get_value(self, q):
         value = None
