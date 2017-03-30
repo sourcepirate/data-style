@@ -73,70 +73,46 @@ class AttributeValueField(TextField):
         self.repeated = repeated
 
     def get_value(self, q):
-        value = None
-
         if self.selector is not None:
             tag = q.select(self.selector)
         else:
             tag = q
-
         if tag and self.attr:
             mapped = map(lambda x: x.get(self.attr), tag)
             return next(mapped) if not self.repeated else list(mapped)
         else:
-        	return None
+            return None
 
-class RelatedItem(object):
-    """Set a related  item.
-    Defined as a field, a related item could be part of the item it is defined
-    on, scraped from the item's inner HTML, or following an URL given by the
-    specified attribute, if given.
-    Related item(s) will be fetch on first field access.
-    """
+class HtmlField(TextField):
+    """Extracting only html content from Output. Implement your own clean
+       method to sanitize the html"""
+    def __init__(self, *args, repeated=False, **kwargs):
+        super(HtmlField, self).__init__(*args, **kwargs)
+        self.repeated = repeated
 
-    def __init__(self, item, selector=None, attr=None):
-        super(RelatedItem, self).__init__()
+    def get_value(self, q):
+        if not self.selector:
+            return None
+        tag = q.select(self.selector)
+        mapped = map(lambda x: self.clean(str(x)), tag)
+        return next(mapped) if not self.repeated else list(mapped)
+
+class RelationalField(TextField):
+    """Get the related fields from page"""
+    def __init__(self, item, **kwargs):
+        super(RelationalField, self).__init__(**kwargs)
         self.item = item
-        self.selector = selector
-        self.attr = attr
 
-    def _build_url(self, instance, path):
-        url = path
-        if path and not is_absolute(path):
-            url = urljoin(instance._meta.base_url, path)
-        return url
+    def get_value(self, q):
+        if not self.selector:
+            return []
+        tag = q.select(self.selector)
+        items = [self.item(t) for t in tag]
+        return items
 
-    async def __get__(self, instance, owner):
-        value = instance.__dict__.get(self.label, None)
-        if value is None:
-            # default: use given item object as base
-            source = instance._q
-
-            kwargs = {}
-
-            if self.selector:
-                # if selector provided, traversing from the item
-                source = source.select_one(self.selector)
-                kwargs['content'] = str(source)
-
-            if self.attr:
-                # if attr is provided,
-                # assume we are searching for an url to follow
-                html_elem = source[0]
-                path = html_elem.get(self.attr)
-                source = self._build_url(instance, path)
-                kwargs['url']  = source
-
-            related_item = self.item
-            print(kwargs)
-            value = await related_item.all_from(**kwargs)
-            instance.__dict__[self.label] = value
-        return value
-
-    def __set__(self, obj, value):
-    	raise AttributeError('RelatedItem cannot be set.')
 
 def get_fields(bases, attrs):
+    """get fields from base classes"""
     fields = [(field_name, attrs.pop(field_name)) for field_name, obj in
               list(attrs.items()) if isinstance(obj, BaseField)]
     # add inherited fields
@@ -156,26 +132,20 @@ class ItemOptions(object):
         attrs = getattr(meta, '__dict__', {})
         self._qkwargs = {}
         for attr, value in attrs.items():
-            if (attr not in self.DATUM_VALUES and not attr.startswith('_')):
-            	self._qkwargs[attr] = value
+            if attr not in self.DATUM_VALUES and not attr.startswith('_'):
+                self._qkwargs[attr] = value
 
 class ItemMeta(type):
     """Metaclass for a item."""
-
-    def __new__(cls, name, bases, attrs):
-        # set up related item descriptors
-        for field_name, obj in list(attrs.items()):
-            if isinstance(obj, RelatedItem):
-                obj.label = field_name
-        # set up fields
+    def __new__(mcs, name, bases, attrs):
         attrs['_fields'] = get_fields(bases, attrs)
-        new_class = super(ItemMeta, cls).__new__(cls, name, bases, attrs)
+        new_class = super(ItemMeta, mcs).__new__(mcs, name, bases, attrs)
         new_class._meta = ItemOptions(getattr(new_class, 'Meta', None))
         return new_class
 
-
 class ItemDoesNotExist(Exception):
-	pass
+    """Item not found"""
+    pass
 
 
 class Item(with_metaclass(ItemMeta)):
@@ -184,7 +154,6 @@ class Item(with_metaclass(ItemMeta)):
     def __init__(self, item=None):
         if item is None or not isinstance(item, Tag):
             raise ValueError('bs4 object expected')
-
         self._q = item
         for field_name, field in self._fields.items():
             value = field.get_value(self._q)
@@ -194,19 +163,11 @@ class Item(with_metaclass(ItemMeta)):
             value = field.coerce(value)
             setattr(self, field_name, value)
 
-
     @classmethod
     async def _get_items(cls, **kwargs):
-    	if kwargs.get('url'):
-    		pq = await fetch(**kwargs)
-    	else:
-    		pq = kwargs.get("content", None)
-
-    	if not kwargs.get('relational', False):
-    		items = _q(pq).select(cls._meta.selector)
-    	else:
-    		items = _q(pq)
-    	return items
+        html = await fetch(**kwargs)
+        items = _q(html).select(cls._meta.selector)
+        return items
 
     @classmethod
     async def all_from(cls, **kwargs):
@@ -230,3 +191,4 @@ class Item(with_metaclass(ItemMeta)):
         url = urljoin(cls._meta.base_url, path)
         pq_items = await cls._get_items(url=url, **cls._meta._qkwargs)
         return [cls(item=i) for i in pq_items]
+

@@ -1,5 +1,6 @@
 """test all fields"""
 import unittest
+from unittest.mock import MagicMock
 from tests.base import async_test
 from bs4 import BeautifulSoup as q
 from data import data
@@ -67,3 +68,34 @@ class TestAttributeValueField(unittest.TestCase):
         """testing the value if repated property is enabled"""
         field = data.AttributeValueField(attr="attr", selector="li", repeated=True)
         self.assertListEqual(["big", None], field.get_value(self._html))
+
+class TestHtmlField(unittest.TestCase):
+    """Testing Html Field"""
+    def setUp(self):
+        super(TestHtmlField, self).setUp()
+        self._html = q("<ul><li>1</li><li>2</li></ul>")
+
+    def test_get_value_htmlnorepeat(self):
+        """testing the get value base on html no repeat"""
+        field = data.HtmlField(selector="li")
+        self.assertEqual("<li>1</li>", field.get_value(self._html))
+
+    def test_get_value_htmlrepeat(self):
+        """testing the get value base on html repeat"""
+        field = data.HtmlField(selector="li", repeated=True)
+        self.assertListEqual(["<li>1</li>", "<li>2</li>"], field.get_value(self._html))
+
+class TestRelationalField(unittest.TestCase):
+    """Testing relational field"""
+    def setUp(self):
+        super(TestRelationalField, self).setUp()
+        self._html = q("<ul><li>1</li><li>2</li></ul>")
+
+    def test_get_value_for_related_item(self):
+        """test whether the related item takes html from parent
+           and passes it to subitem"""
+        item_mock = MagicMock()
+        field = data.RelationalField(item_mock, selector="ul")
+        value = field.get_value(self._html)
+        self.assertEqual(item_mock.call_count, 1)
+        self.assertIsNotNone(value)
