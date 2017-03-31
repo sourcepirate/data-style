@@ -164,6 +164,9 @@ class SubPageFields(object):
             results.append(self.item(item=sub_q))
         return results
 
+    def __set__(self, obj, value):
+        raise AttributeError('SubPageFields cannot be set.')
+
 
 def get_fields(bases, attrs):
     """get fields from base classes"""
