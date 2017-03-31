@@ -11,9 +11,11 @@ def is_absoulte(url):
     """check whether the url is absolute"""
     return bool(urlparse(url).netloc)
 
+
 def with_metaclass(meta, base=object):
     """create a new base for meta class"""
     return meta("NewBase", (base,), {})
+
 
 class BaseField(object):
     """Base field."""
@@ -34,7 +36,9 @@ class BaseField(object):
 
     def get_value(self, value):
         """Extract value from given _q element."""
-        raise NotImplementedError("Custom fields have to implement this method")
+        raise NotImplementedError(
+            "Custom fields have to implement this method")
+
 
 class TextField(BaseField):
     """Simple text field.
@@ -60,6 +64,7 @@ class TextField(BaseField):
         mapped = map(lambda x: self.clean(x.text), tag)
         return next(mapped) if not self.repeated else list(mapped)
 
+
 class AttributeValueField(TextField):
     """Simple text field, getting an attribute value.
     Extract specific attribute value from a tag given by 'selector'.
@@ -84,9 +89,11 @@ class AttributeValueField(TextField):
         else:
             return None
 
+
 class HtmlField(TextField):
     """Extracting only html content from Output. Implement your own clean
        method to sanitize the html"""
+
     def __init__(self, *args, repeated=False, **kwargs):
         super(HtmlField, self).__init__(*args, **kwargs)
         self.repeated = repeated
@@ -98,8 +105,10 @@ class HtmlField(TextField):
         mapped = map(lambda x: self.clean(str(x)), tag)
         return next(mapped) if not self.repeated else list(mapped)
 
+
 class RelationalField(TextField):
     """Get the related fields from page"""
+
     def __init__(self, item, **kwargs):
         super(RelationalField, self).__init__(**kwargs)
         self.item = item
@@ -111,8 +120,10 @@ class RelationalField(TextField):
         items = [self.item(item=t) for t in tag]
         return items
 
+
 class DomObjectField(TextField):
     """Get the dom from page as dict"""
+
     def __init__(self, **kwargs):
         super(DomObjectField, self).__init__(**kwargs)
 
@@ -123,12 +134,14 @@ class DomObjectField(TextField):
         fields = map(lambda x: parse(str(x)), tags)
         return next(fields) if not self.repeated else list(fields)
 
+
 class SubPageFields(object):
     """Get the resources from sub pages"""
+
     def __init__(self, item, **kwargs):
-        super(SubPageFields, self).__init__(**kwargs)
         self.item = item
         self.link_selector = kwargs.get("link_selector", None)
+        super(SubPageFields, self).__init__()
 
     def _build_url(self, instance, path):
         url = path
@@ -151,6 +164,7 @@ class SubPageFields(object):
             results.append(self.item(item=sub_q))
         return results
 
+
 def get_fields(bases, attrs):
     """get fields from base classes"""
     fields = [(field_name, attrs.pop(field_name)) for field_name, obj in
@@ -160,6 +174,7 @@ def get_fields(bases, attrs):
         if hasattr(base, '_fields'):
             fields = list(base._fields.items()) + fields
     return dict(fields)
+
 
 class ItemOptions(object):
     """Meta options for an item."""
@@ -175,6 +190,7 @@ class ItemOptions(object):
             if attr not in self.DATUM_VALUES and not attr.startswith('_'):
                 self._qkwargs[attr] = value
 
+
 class ItemMeta(type):
     """Metaclass for a item."""
     def __new__(mcs, name, bases, attrs):
@@ -182,6 +198,7 @@ class ItemMeta(type):
         new_class = super(ItemMeta, mcs).__new__(mcs, name, bases, attrs)
         new_class._meta = ItemOptions(getattr(new_class, 'Meta', None))
         return new_class
+
 
 class ItemDoesNotExist(Exception):
     """Item not found"""
@@ -231,4 +248,3 @@ class Item(with_metaclass(ItemMeta)):
         url = urljoin(cls._meta.base_url, path)
         pq_items = await cls._get_items(url=url, **cls._meta._qkwargs)
         return [cls(item=i) for i in pq_items]
-

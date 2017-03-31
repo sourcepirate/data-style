@@ -124,20 +124,24 @@ class TestSubPageFields(unittest.TestCase):
     """
     def setUp(self):
         super(TestSubPageFields, self).setUp()
-        self._html = q("<div><a href='/res1'>resource1<a></div>")
+        self._html = q("<div><a href='/res1'>resource1</a></div>")
         self.q = q
 
     
-    @patch('data.requests.fetch', new_callable=AsyncMock)
     @async_test
-    async def test_sub_page_crawls(self, fetch_mock):
-        fetch_mock.return_value = "<ul><li>1</li></ul>"
-        item_mock = MagicMock()
-        instance_mock = MagicMock()
-        instance_mock._q = self.q(self._html)
-        instance_mock._meta = MagicMock()
-        instance_mock._meta.base_url = 'http://gooble.com'
-        field = data.SubPageFields(item_mock, link_selector="a")
-        response = await field.__get__(instance_mock, None)
-        print(response)
-        self.assertIsNotNone(response)
+    async def test_sub_page_crawls(self):
+        """testing value of async fetch with respect to the given
+           response
+        """
+        with patch('data.data.fetch', new_callable=AsyncMock) as fetch_mock:
+            fetch_mock.return_value = "<ul><li>1</li></ul>"
+            item_mock = MagicMock()
+            instance_mock = MagicMock()
+            instance_mock._q = self._html
+            print(type(instance_mock._q))
+            instance_mock._meta.base_url = 'http://gooble.com'
+            field = data.SubPageFields(item_mock, link_selector="a")
+            response = await field.__get__(instance_mock, None)
+            print(response)
+            self.assertIsNotNone(response)
+            self.assertEquals(item_mock.call_count, 1)
