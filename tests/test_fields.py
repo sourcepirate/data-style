@@ -1,10 +1,10 @@
 """test all fields"""
 import unittest
-from unittest.mock import MagicMock
-from tests.base import async_test
+from unittest.mock import MagicMock, patch
+from tests.base import async_test, AsyncMock
 from bs4 import BeautifulSoup as q
 from data import data
-
+from untangle import Element
 
 class TestBaseField(unittest.TestCase):
     """Testing BaseField"""
@@ -99,3 +99,45 @@ class TestRelationalField(unittest.TestCase):
         value = field.get_value(self._html)
         self.assertEqual(item_mock.call_count, 1)
         self.assertIsNotNone(value)
+
+class TestDomObjectField(unittest.TestCase):
+    """Testing dom dict field"""
+    def setUp(self):
+        super(TestDomObjectField, self).setUp()
+        self._html = q("<ul><li>1</li><li>2</li></ul>")
+
+    def test_get_for_domdict_no_repeat(self):
+        """test value get if no repeat"""
+        field = data.DomObjectField(selector="li")
+        element = field.get_value(self._html)
+        self.assertIsInstance(element, Element)
+
+    def test_get_for_domdict_repeat(self):
+        """test value get if repeat"""
+        field = data.DomObjectField(selector="li", repeated=True)
+        element = field.get_value(self._html)
+        self.assertIsInstance(element, list)
+
+class TestSubPageFields(unittest.TestCase):
+    """Testing subpage fields which queries the other pages
+       for info
+    """
+    def setUp(self):
+        super(TestSubPageFields, self).setUp()
+        self._html = q("<div><a href='/res1'>resource1<a></div>")
+        self.q = q
+
+    
+    @patch('data.requests.fetch', new_callable=AsyncMock)
+    @async_test
+    async def test_sub_page_crawls(self, fetch_mock):
+        fetch_mock.return_value = "<ul><li>1</li></ul>"
+        item_mock = MagicMock()
+        instance_mock = MagicMock()
+        instance_mock._q = self.q(self._html)
+        instance_mock._meta = MagicMock()
+        instance_mock._meta.base_url = 'http://gooble.com'
+        field = data.SubPageFields(item_mock, link_selector="a")
+        response = await field.__get__(instance_mock, None)
+        print(response)
+        self.assertIsNotNone(response)

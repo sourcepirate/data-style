@@ -4,6 +4,7 @@ from data.requests import fetch
 from bs4 import BeautifulSoup as _q
 from bs4.element import Tag
 from urllib.parse import urljoin, urlparse
+from untangle import parse
 
 
 def is_absoulte(url):
@@ -107,9 +108,48 @@ class RelationalField(TextField):
         if not self.selector:
             return []
         tag = q.select(self.selector)
-        items = [self.item(t) for t in tag]
+        items = [self.item(item=t) for t in tag]
         return items
 
+class DomObjectField(TextField):
+    """Get the dom from page as dict"""
+    def __init__(self, **kwargs):
+        super(DomObjectField, self).__init__(**kwargs)
+
+    def get_value(self, q):
+        if not self.selector:
+            return []
+        tags = q.select(self.selector)
+        fields = map(lambda x: parse(str(x)), tags)
+        return next(fields) if not self.repeated else list(fields)
+
+class SubPageFields(object):
+    """Get the resources from sub pages"""
+    def __init__(self, item, **kwargs):
+        super(SubPageFields, self).__init__(**kwargs)
+        self.item = item
+        self.link_selector = kwargs.get("link_selector", None)
+
+    def _build_url(self, instance, path):
+        url = path
+        if path and not is_absoulte(path):
+            url = urljoin(instance._meta.base_url, path)
+        return url
+
+    async def __get__(self, instance, owner):
+        """overriding the descriptor to get the related links html"""
+        page_source = instance._q
+        if not self.link_selector:
+            return []
+        link_selectors = page_source.select(self.link_selector)
+        links = map(lambda x: x.get('href'), link_selectors)
+        results = []
+        for link in links:
+            url = self._build_url(instance, link)
+            html = await fetch(url=url)
+            sub_q = _q(html)
+            results.append(self.item(item=sub_q))
+        return results
 
 def get_fields(bases, attrs):
     """get fields from base classes"""
