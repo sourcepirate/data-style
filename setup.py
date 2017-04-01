@@ -18,6 +18,11 @@ setup(
     url='https://github.com/sourcepirate/datastyle.git',
     license=LICENSE,
     packages=find_packages(exclude=('tests', 'docs')),
+    install_requires=[
+        "aiohttp",
+        "untangle",
+        "bs4"
+    ],
     test_suite='tests'
 )
 

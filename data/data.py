@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup as _q
 from bs4.element import Tag
 from urllib.parse import urljoin, urlparse
 from untangle import parse
+import asyncio
 
 
 def is_absoulte(url):
@@ -62,7 +63,10 @@ class TextField(BaseField):
             return None
         tag = q.select(self.selector)
         mapped = map(lambda x: self.clean(x.text), tag)
-        return next(mapped) if not self.repeated else list(mapped)
+        try:
+            return next(mapped) if not self.repeated else list(mapped)
+        except StopIteration:
+            return None
 
 
 class AttributeValueField(TextField):
@@ -149,6 +153,13 @@ class SubPageFields(object):
             url = urljoin(instance._meta.base_url, path)
         return url
 
+    async def _parse_response(self, instance, link):
+        """parse the repsonse to corotine"""
+        url = self._build_url(instance, link)
+        html = await fetch(url=url)
+        sub_q = _q(html)
+        return self.item(item=sub_q)
+
     async def __get__(self, instance, owner):
         """overriding the descriptor to get the related links html"""
         page_source = instance._q
@@ -156,12 +167,8 @@ class SubPageFields(object):
             return []
         link_selectors = page_source.select(self.link_selector)
         links = map(lambda x: x.get('href'), link_selectors)
-        results = []
-        for link in links:
-            url = self._build_url(instance, link)
-            html = await fetch(url=url)
-            sub_q = _q(html)
-            results.append(self.item(item=sub_q))
+        routines = [self._parse_response(instance, link) for link in links]
+        results = await asyncio.gather(*routines, return_exceptions=True)
         return results
 
     def __set__(self, obj, value):

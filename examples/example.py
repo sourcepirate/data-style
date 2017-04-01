@@ -1,12 +1,25 @@
-## Data-Style
-a structured scrapper writen on top of beautifulsoup and asyncio.
-
-## Usage
-
-```python
-
+import sys, os
 import asyncio
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from data import data
+from tests.base import async_test
+
+sem = asyncio.Semaphore(5)
+
+class StallMan(data.Item):
+
+    urgent_items = data.TextField(repeated=True, selector=".column1 li")
+
+    class Meta:
+        base_url= "https://stallman.org/"
+
+@async_test
+async def hello():
+    results = await StallMan.all("/")
+    print(results[0].urgent_items)
+
+hello()
+
 
 class MovieDetails(data.Item):
 
@@ -20,6 +33,7 @@ class YifyMovie(data.Item):
     class Meta:
         base_url = "https://yts.ag/"
 
+@async_test
 async def mymovie():
     results = await YifyMovie.one("/")
     print(results.pixel)
@@ -27,18 +41,4 @@ async def mymovie():
     for detail in details:
         print(detail.movie_name, detail.movie_year)
 
-loop = asyncio.get_event_loop()
-loop.run_until_complete(mymovie())
-
-
-```
-
-## Develop
-
-```
-  python setup.py develop
-  python setup.py test
-```
-
-##License
-MIT
+mymovie()

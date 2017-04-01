@@ -13,5 +13,5 @@ async def fetch(url="", headers=DEFAULT_HEADERS, params={}, payload={}, method="
         _method = getattr(session, method.lower())
         async with _method(url, params=params, data=payload) as resp:
             ctype = resp.headers.get('Content-Type', 'text/html')
-            return await resp.text()
+            return await resp.text(encoding='ISO-8859-1')
 
