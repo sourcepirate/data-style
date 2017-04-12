@@ -40,7 +40,6 @@ class BaseField(object):
         raise NotImplementedError(
             "Custom fields have to implement this method")
 
-
 class TextField(BaseField):
     """Simple text field.
     Extract text content from a tag given by 'selector'.
@@ -192,7 +191,7 @@ class ItemOptions(object):
     DATUM_VALUES = ('selector', 'base_url')
 
     def __init__(self, meta):
-        self.selector = getattr(meta, 'selector', 'html')
+        self.selector = getattr(meta, 'selector', None)
         self.base_url = getattr(meta, 'base_url', '')
         attrs = getattr(meta, '__dict__', {})
         self._qkwargs = {}
@@ -233,7 +232,10 @@ class Item(with_metaclass(ItemMeta)):
     @classmethod
     async def _get_items(cls, **kwargs):
         html = await fetch(**kwargs)
-        items = _q(html).select(cls._meta.selector)
+        if cls._meta.selector:
+            items = _q(html).select(cls._meta.selector)
+        else:
+            items = [_q(html)]
         return items
 
     @classmethod

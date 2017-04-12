@@ -9,7 +9,7 @@ with open('LICENSE') as f:
     LICENSE = f.read()
 
 setup(
-    name='data',
+    name='dataland',
     version='0.1.0',
     description='A jutsu of data style',
     long_description=README,
