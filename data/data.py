@@ -152,10 +152,10 @@ class SubPageFields(object):
             url = urljoin(instance._meta.base_url, path)
         return url
 
-    async def _parse_response(self, instance, link):
+    async def _parse_response(self, instance, link, method="GET"):
         """parse the repsonse to corotine"""
         url = self._build_url(instance, link)
-        html = await fetch(url=url)
+        html = await fetch(url=url, method="GET")
         sub_q = _q(html)
         return self.item(item=sub_q)
 
@@ -255,8 +255,9 @@ class Item(with_metaclass(ItemMeta)):
         return cls(item=item)
 
     @classmethod
-    async def all(cls, path=''):
+    async def all(cls, path='', **kwargs):
         """Return all ocurrences of the item."""
         url = urljoin(cls._meta.base_url, path)
-        pq_items = await cls._get_items(url=url, **cls._meta._qkwargs)
+        kwargs.update(cls._meta._qkwargs)
+        pq_items = await cls._get_items(url=url, **kwargs)
         return [cls(item=i) for i in pq_items]
