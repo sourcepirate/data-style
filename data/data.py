@@ -218,9 +218,12 @@ class Item(with_metaclass(ItemMeta)):
     """Base class for any demiurge item."""
 
     def __init__(self, item=None):
-        if item is None or not isinstance(item, Tag):
-            raise ValueError('bs4 object expected')
-        self._q = item
+        if isinstance(item, Tag):
+            self._q = item
+        elif isinstance(item, str):
+            self._q = _q(item)
+        else:
+            raise ValueError("Invalid object given to Item (Expecting String or Tag)")
         for field_name, field in self._fields.items():
             value = field.get_value(self._q)
             clean_field = getattr(self, 'clean_%s' % field_name, None)

@@ -10,7 +10,7 @@ with open('LICENSE') as f:
 
 setup(
     name='dataland',
-    version='0.1.0',
+    version='1.0.1',
     description='A jutsu of data style',
     long_description=README,
     author='Sourcepirate',
