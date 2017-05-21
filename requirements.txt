@@ -1,3 +1,4 @@
-aiohttp
 untangle
 bs4
+selenium
+aiohttp

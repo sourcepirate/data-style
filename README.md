@@ -1,5 +1,14 @@
 ## Data-Style
-a structured scrapper writen on top of beautifulsoup and asyncio.
+
+a structured scrapper writen on top of beautifulsoup and asyncio. Also provides javascript support(optional) through
+phantomjs and selenium.
+
+Phantomjs dependency can be left optional if you don't need javascript support.
+
+## installation
+
+[installing phantomjs](http://phantomjs.org)
+
 
 ## Usage
 
