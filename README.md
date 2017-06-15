@@ -1,5 +1,7 @@
 ## Data-Style
 
+[![Build Status](https://travis-ci.org/sourcepirate/data-style.svg?branch=master)](https://travis-ci.org/sourcepirate/data-style)
+
 a structured scrapper writen on top of beautifulsoup and asyncio. Also provides javascript support(optional) through
 phantomjs and selenium.
 
