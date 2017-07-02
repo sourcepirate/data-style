@@ -21,7 +21,8 @@ setup(
     install_requires=[
         "aiohttp",
         "untangle",
-        "bs4"
+        "bs4",
+        "selenium"
     ],
     test_suite='tests'
 )
