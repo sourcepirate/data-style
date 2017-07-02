@@ -42,6 +42,25 @@ loop.run_until_complete(mymovie())
 
 ```
 
+Inorder to use desired capabilities along with phantomjs-webdriver. 
+
+```python
+
+class MovieItem(data.Item):
+    details = data.SubPageFields(MovieDetails, link_selector=".browse-movie-wrap a.browse-movie-link")
+    pixel = data.TextField(selector=".browse-movie-tags a")
+
+    class Meta:
+        base_url = "https://yts.ag/"
+        capabilities = {
+            "phantomjs.page.settings.userAgent": (
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/53 "
+            "(KHTML, like Gecko) Chrome/15.0.87")
+        }
+
+``` 
+
+
 ## Develop
 
 ```
