@@ -1,11 +1,14 @@
 """data item class and fields"""
 
-from data.requests import fetch
+import asyncio
+import warnings
 from bs4 import BeautifulSoup as _q
 from bs4.element import Tag
-from urllib.parse import urljoin, urlparse
 from untangle import parse
-import asyncio
+from urllib.parse import urljoin, urlparse
+from data.requests import get_checksum
+from data.fetcher import select_default_fetcher
+warnings.filterwarnings("ignore", category=UserWarning, module='bs4')
 
 
 def is_absoulte(url):
@@ -155,7 +158,7 @@ class SubPageFields(object):
     async def _parse_response(self, instance, link, method="GET"):
         """parse the repsonse to corotine"""
         url = self._build_url(instance, link)
-        html = await fetch(url=url, method="GET")
+        html = await instance._meta.fetcher.fetch(url)
         sub_q = _q(html)
         return self.item(item=sub_q)
 
@@ -188,11 +191,13 @@ def get_fields(bases, attrs):
 class ItemOptions(object):
     """Meta options for an item."""
 
-    DATUM_VALUES = ('selector', 'base_url')
+    DATUM_VALUES = ('selector', 'base_url', 'fetcher')
 
     def __init__(self, meta):
         self.selector = getattr(meta, 'selector', None)
         self.base_url = getattr(meta, 'base_url', '')
+        _fetcher = getattr(meta, 'fetcher', select_default_fetcher())
+        self.fetcher = _fetcher()
         attrs = getattr(meta, '__dict__', {})
         self._qkwargs = {}
         for attr, value in attrs.items():
@@ -234,7 +239,8 @@ class Item(with_metaclass(ItemMeta)):
 
     @classmethod
     async def _get_items(cls, **kwargs):
-        html = await fetch(**kwargs)
+        url = kwargs.pop("url")
+        html = await cls._meta.fetcher.fetch(url, **kwargs)
         if cls._meta.selector:
             items = _q(html).select(cls._meta.selector)
         else:
