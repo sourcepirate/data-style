@@ -4,6 +4,7 @@ import aiohttp
 import shutil
 import asyncio
 from selenium import webdriver
+from functools import partial
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from urllib.parse import urlencode, urlparse, urlunparse, parse_qsl
 
@@ -46,9 +47,8 @@ async def urlfetch(url="", headers={}, params={}, payload={}, method="GET", loop
             return result
 
 
-def get_page_source(url, desired_capabilities):
+def get_page_source(driver, url):
     """get the source"""
-    driver = webdriver.PhantomJS(desired_capabilities=desired_capabilities)
     driver.get(url)
     return driver.page_source
 
@@ -60,12 +60,14 @@ async def fetch(url="", params={}, loop=None, capabilities={}):
         "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/53 ",
         "(KHTML, like Gecko) Chrome/15.0.87")
     dcap.update(capabilities)
+    driver = webdriver.PhantomJS(desired_capabilities=dcap)
     if not url:
         return
     if shutil.which('phantomjs'):
         loop = loop or asyncio.get_event_loop()
         parsed_url = url_concat(url, **params)
-        source = await loop.run_in_executor(None, get_page_source, url, dcap)
+        get_source_partial = partial(get_page_source, driver)
+        source = await loop.run_in_executor(None, get_source_partial, url)
         return source
     else:
         print("You don't have phantomjs installed! Please install for more good experience")
