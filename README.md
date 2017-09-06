@@ -88,6 +88,14 @@ class PhatomJSFetcher(Fetcher):
         driver.get(url, **extra)
         return driver.page_source
 
+class MovieItem(data.Item):
+    details = data.SubPageFields(MovieDetails, link_selector=".browse-movie-wrap a.browse-movie-link")
+    pixel = data.TextField(selector=".browse-movie-tags a")
+
+    class Meta:
+        base_url = "https://yts.ag/"
+        fetcher = PhatomJSFetcher(desired_capabilities=None)
+
 ```
 
 ## Develop
