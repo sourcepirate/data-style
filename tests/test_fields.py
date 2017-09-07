@@ -4,6 +4,8 @@ from unittest.mock import MagicMock, patch
 from tests.base import async_test, AsyncMock
 from bs4 import BeautifulSoup as q
 from data import data
+from data.fetcher.base import Fetcher
+from data.fetcher.phatom import PhatomJSFetcher
 from untangle import Element
 
 class TestBaseField(unittest.TestCase):
@@ -133,13 +135,14 @@ class TestSubPageFields(unittest.TestCase):
         """testing value of async fetch with respect to the given
            response
         """
-        with patch('data.data.fetch', new_callable=AsyncMock) as fetch_mock:
-            fetch_mock.return_value = "<ul><li>1</li></ul>"
+        with patch.object(PhatomJSFetcher,'fetch', new_callable=AsyncMock) as fm:
+            fm.return_value = "<ul><li>1</li></ul>"
             item_mock = MagicMock()
-            instance_mock = MagicMock()
+            instance_mock = AsyncMock()
             instance_mock._q = self._html
             print(type(instance_mock._q))
             instance_mock._meta.base_url = 'http://gooble.com'
+            instance_mock._meta.fetcher.fetch = fm
             field = data.SubPageFields(item_mock, link_selector="a")
             response = await field.__get__(instance_mock, None)
             print(response)
