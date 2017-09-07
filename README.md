@@ -94,7 +94,7 @@ class MovieItem(data.Item):
 
     class Meta:
         base_url = "https://yts.ag/"
-        fetcher = PhatomJSFetcher(desired_capabilities=None)
+        fetcher = PhatomJSFetcher
 
 ```
 
