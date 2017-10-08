@@ -16,14 +16,17 @@ class Fetcher(object):
         """fetches the result from fetcher and gives it"""
 
         result = {}
+        extra.update({
+            "loop": loop
+        })
         parsed_url = url_concat(url, **params)
         if inspect.iscoroutinefunction(self.on_fetch):
-            result = await self.on_fetch(parsed_url, loop=None, **extra)
+            result = await self.on_fetch(parsed_url, extra)
         else:
             loop = loop or asyncio.get_event_loop()
-            result = await loop.run_in_executor(None, self.on_fetch, parsed_url, **extra)
+            result = await loop.run_in_executor(None, self.on_fetch, parsed_url, extra)
         return result
 
-    async def on_fetch(self, url, loop=None, **extra):
+    async def on_fetch(self, url, extra):
         """on_fetch base impl"""
         raise NotImplementedError

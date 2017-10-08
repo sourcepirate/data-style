@@ -3,6 +3,7 @@ import shutil
 from .base import Fetcher
 from .phatom import PhatomJSFetcher
 from .urlfetcher import UrlFetcher
+from .phatom_proxy import PhantomProxyFetcher
 
 def select_default_fetcher():
     """select default fetcher base on binary available"""
@@ -12,4 +13,4 @@ def select_default_fetcher():
     return UrlFetcher
 
 
-__all__ = ["Fetcher", "PhatomJSFetcher", "UrlFetcher", "select_default_fetcher"]
+__all__ = ["Fetcher", "PhatomJSFetcher", "UrlFetcher", "select_default_fetcher", "PhantomProxyFetcher"]

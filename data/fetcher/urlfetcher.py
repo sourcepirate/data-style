@@ -10,7 +10,7 @@ from data.requests import urlfetch
 
 class UrlFetcher(Fetcher):
 
-    async def on_fetch(self, url, loop=None, **extra):
+    async def on_fetch(self, url, extra):
         """on data fetch using aiohttp """
-        result = await urlfetch(url, loop=loop, **extra)
+        result = await urlfetch(url, **extra)
         return result

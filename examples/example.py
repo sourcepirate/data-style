@@ -1,9 +1,8 @@
 import sys, os
 import asyncio
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from data import data
+from data import data, fetcher
 from tests.base import async_test
-
 sem = asyncio.Semaphore(5)
 
 class StallMan(data.Item):
@@ -12,6 +11,8 @@ class StallMan(data.Item):
 
     class Meta:
         base_url= "https://stallman.org/"
+        fetcher = fetcher.PhantomProxyFetcher
+        proxy_list = ["202.168.244.106:53281", "115.178.97.70:63909", "203.189.141.162:63909"]
 
 @async_test
 async def hello():
@@ -32,6 +33,8 @@ class YifyMovie(data.Item):
 
     class Meta:
         base_url = "https://yts.ag/"
+        fetcher = fetcher.PhantomProxyFetcher
+        proxy_list = ["202.168.244.106:53281", "115.178.97.70:63909", "203.189.141.162:63909"]
 
 @async_test
 async def mymovie():
@@ -41,4 +44,4 @@ async def mymovie():
     for detail in details:
         print(detail.movie_name, detail.movie_year)
 
-mymovie()
+# mymovie()
