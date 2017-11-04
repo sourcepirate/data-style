@@ -17,5 +17,5 @@ class PhatomJSFetcher(Fetcher):
     def on_fetch(self, url, extra):
         """on fetch callback for phatomjs"""
         driver = webdriver.PhantomJS(desired_capabilities=self.desired_capabilities)
-        driver.get(url, **extra)
+        driver.get(url)
         return driver.page_source
