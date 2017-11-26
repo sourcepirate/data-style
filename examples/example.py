@@ -19,7 +19,7 @@ async def hello():
     results = await StallMan.all("/")
     print(results[0].urgent_items)
 
-hello()
+# hello()
 
 
 class MovieDetails(data.Item):
@@ -33,8 +33,8 @@ class YifyMovie(data.Item):
 
     class Meta:
         base_url = "https://yts.ag/"
-        fetcher = fetcher.PhantomProxyFetcher
-        proxy_list = ["202.168.244.106:53281", "115.178.97.70:63909", "203.189.141.162:63909"]
+        fetcher = fetcher.PhatomJSFetcher
+        max_workers = 10
 
 @async_test
 async def mymovie():
@@ -44,4 +44,4 @@ async def mymovie():
     for detail in details:
         print(detail.movie_name, detail.movie_year)
 
-# mymovie()
+mymovie()
