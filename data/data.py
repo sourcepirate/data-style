@@ -6,7 +6,6 @@ from bs4 import BeautifulSoup as _q
 from bs4.element import Tag
 from untangle import parse
 from urllib.parse import urljoin, urlparse
-from data.requests import get_checksum
 from data.fetcher import select_default_fetcher
 warnings.filterwarnings("ignore", category=UserWarning, module='bs4')
 
