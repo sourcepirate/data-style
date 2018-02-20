@@ -1,6 +1,7 @@
 """data item class and fields"""
 
 import asyncio
+import hashlib
 import warnings
 from bs4 import BeautifulSoup as _q
 from bs4.element import Tag
@@ -19,6 +20,8 @@ def with_metaclass(meta, base=object):
     """create a new base for meta class"""
     return meta("NewBase", (base,), {})
 
+def hash_html(html):
+    return hashlib.sha256(html.encode('utf-8')).hexdigest()
 
 class BaseField(object):
     """Base field."""
@@ -68,7 +71,6 @@ class TextField(BaseField):
             return next(mapped) if not self.repeated else list(mapped)
         except StopIteration:
             return None
-
 
 class AttributeValueField(TextField):
     """Simple text field, getting an attribute value.
@@ -235,6 +237,10 @@ class Item(with_metaclass(ItemMeta)):
                 value = clean_field(value)
             value = field.coerce(value)
             setattr(self, field_name, value)
+    
+    @property
+    def md5hash(self):
+        return hash_html(self._q.html)
 
     @classmethod
     async def _get_items(cls, **kwargs):
