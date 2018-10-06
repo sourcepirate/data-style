@@ -1,12 +1,15 @@
 """test all fields"""
 import unittest
+from functools import partial
 from unittest.mock import MagicMock, patch
 from tests.base import async_test, AsyncMock
-from bs4 import BeautifulSoup as q
+from bs4 import BeautifulSoup
 from data import data
 from data.fetcher.base import Fetcher
 from data.fetcher.phatom import PhatomJSFetcher
 from untangle import Element
+
+q = partial(BeautifulSoup, features="html.parser")
 
 class TestBaseField(unittest.TestCase):
     """Testing BaseField"""
