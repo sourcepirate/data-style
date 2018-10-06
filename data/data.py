@@ -3,13 +3,15 @@
 import asyncio
 import hashlib
 import warnings
-from bs4 import BeautifulSoup as _q
+from functools import partial
+from bs4 import BeautifulSoup
 from bs4.element import Tag
 from untangle import parse
 from urllib.parse import urljoin, urlparse
 from data.fetcher import select_default_fetcher
 warnings.filterwarnings("ignore", category=UserWarning, module='bs4')
 
+_q = partial(BeautifulSoup, features="html.parser")
 
 def is_absoulte(url):
     """check whether the url is absolute"""
@@ -224,6 +226,7 @@ class Item(with_metaclass(ItemMeta)):
     """Base class for any demiurge item."""
 
     def __init__(self, item=None):
+        self.values = {}
         if isinstance(item, Tag):
             self._q = item
         elif isinstance(item, str):
@@ -237,6 +240,10 @@ class Item(with_metaclass(ItemMeta)):
                 value = clean_field(value)
             value = field.coerce(value)
             setattr(self, field_name, value)
+            self.values[field_name] = value
+
+    def json(self):
+        return self.values
     
     @property
     def md5hash(self):
