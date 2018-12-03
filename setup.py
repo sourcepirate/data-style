@@ -18,6 +18,11 @@ setup(
     url="https://github.com/sourcepirate/datastyle.git",
     license=LICENSE,
     packages=find_packages(exclude=("tests", "docs")),
-    install_requires=["aiohttp", "untangle", "beautifulsoup4", "selenium"],
+    install_requires=[
+        "aiohttp==3.4.4",
+        "untangle==1.1.1",
+        "beautifulsoup4==4.6.3",
+        "selenium==3.141.0",
+    ],
     test_suite="tests",
 )
