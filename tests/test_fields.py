@@ -5,14 +5,16 @@ from unittest.mock import MagicMock, patch
 from tests.base import async_test, AsyncMock
 from bs4 import BeautifulSoup
 from data import data
-from data.fetcher.base import Fetcher
-from data.fetcher.phatom import PhatomJSFetcher
+from data.fetcher import Fetcher
+from data.fetcher import PhatomJSFetcher
 from untangle import Element
 
 q = partial(BeautifulSoup, features="html.parser")
 
+
 class TestBaseField(unittest.TestCase):
     """Testing BaseField"""
+
     def setUp(self):
         super(TestBaseField, self).setUp()
         self._field = data.BaseField(coerce=lambda x: "{}:{}".format(x, "coerce"))
@@ -32,8 +34,10 @@ class TestBaseField(unittest.TestCase):
         value = self._field.coerce("coerce")
         self.assertEqual(value, "coerce:coerce")
 
+
 class TestTextField(unittest.TestCase):
     """Testing TextField"""
+
     def setUp(self):
         super(TestTextField, self).setUp()
         self._html = q("<ul><li attr='big'>1</li><li attr2='small'>2</li></ul>")
@@ -53,8 +57,10 @@ class TestTextField(unittest.TestCase):
         field = data.TextField(selector="li", repeated=True)
         self.assertListEqual(["1", "2"], field.get_value(self._html))
 
+
 class TestAttributeValueField(unittest.TestCase):
     """Testing Attribute field"""
+
     def setUp(self):
         super(TestAttributeValueField, self).setUp()
         self._html = q("<ul><li attr='big'>1</li><li attr2='small'>2</li></ul>")
@@ -74,8 +80,10 @@ class TestAttributeValueField(unittest.TestCase):
         field = data.AttributeValueField(attr="attr", selector="li", repeated=True)
         self.assertListEqual(["big", None], field.get_value(self._html))
 
+
 class TestHtmlField(unittest.TestCase):
     """Testing Html Field"""
+
     def setUp(self):
         super(TestHtmlField, self).setUp()
         self._html = q("<ul><li>1</li><li>2</li></ul>")
@@ -90,8 +98,10 @@ class TestHtmlField(unittest.TestCase):
         field = data.HtmlField(selector="li", repeated=True)
         self.assertListEqual(["<li>1</li>", "<li>2</li>"], field.get_value(self._html))
 
+
 class TestRelationalField(unittest.TestCase):
     """Testing relational field"""
+
     def setUp(self):
         super(TestRelationalField, self).setUp()
         self._html = q("<ul><li>1</li><li>2</li></ul>")
@@ -105,8 +115,10 @@ class TestRelationalField(unittest.TestCase):
         self.assertEqual(item_mock.call_count, 1)
         self.assertIsNotNone(value)
 
+
 class TestDomObjectField(unittest.TestCase):
     """Testing dom dict field"""
+
     def setUp(self):
         super(TestDomObjectField, self).setUp()
         self._html = q("<ul><li>1</li><li>2</li></ul>")
@@ -123,28 +135,29 @@ class TestDomObjectField(unittest.TestCase):
         element = field.get_value(self._html)
         self.assertIsInstance(element, list)
 
+
 class TestSubPageFields(unittest.TestCase):
     """Testing subpage fields which queries the other pages
        for info
     """
+
     def setUp(self):
         super(TestSubPageFields, self).setUp()
         self._html = q("<div><a href='/res1'>resource1</a></div>")
         self.q = q
 
-    
     @async_test
     async def test_sub_page_crawls(self):
         """testing value of async fetch with respect to the given
            response
         """
-        with patch.object(PhatomJSFetcher,'fetch', new_callable=AsyncMock) as fm:
+        with patch.object(PhatomJSFetcher, "fetch", new_callable=AsyncMock) as fm:
             fm.return_value = "<ul><li>1</li></ul>"
             item_mock = MagicMock()
             instance_mock = AsyncMock()
             instance_mock._q = self._html
             print(type(instance_mock._q))
-            instance_mock._meta.base_url = 'http://gooble.com'
+            instance_mock._meta.base_url = "http://gooble.com"
             instance_mock._meta.fetcher.fetch = fm
             field = data.SubPageFields(item_mock, link_selector="a")
             response = await field.__get__(instance_mock, None)

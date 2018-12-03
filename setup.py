@@ -2,28 +2,22 @@
 """setup.py"""
 from setuptools import setup, find_packages
 
-with open('README.md') as f:
+with open("README.md") as f:
     README = f.read()
 
-with open('LICENSE') as f:
+with open("LICENSE") as f:
     LICENSE = f.read()
 
 setup(
-    name='dataland',
-    version='1.1.1',
-    description='A jutsu of data style',
+    name="dataland",
+    version="1.1.1",
+    description="A jutsu of data style",
     long_description=README,
-    author='Sourcepirate',
-    author_email='plasmashadowx@gmail.com',
-    url='https://github.com/sourcepirate/datastyle.git',
+    author="Sourcepirate",
+    author_email="plasmashadowx@gmail.com",
+    url="https://github.com/sourcepirate/datastyle.git",
     license=LICENSE,
-    packages=find_packages(exclude=('tests', 'docs')),
-    install_requires=[
-        "aiohttp",
-        "untangle",
-        "bs4",
-        "selenium"
-    ],
-    test_suite='tests'
+    packages=find_packages(exclude=("tests", "docs")),
+    install_requires=["aiohttp", "untangle", "beautifulsoup4", "selenium"],
+    test_suite="tests",
 )
-

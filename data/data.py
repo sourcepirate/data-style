@@ -9,9 +9,11 @@ from bs4.element import Tag
 from untangle import parse
 from urllib.parse import urljoin, urlparse
 from data.fetcher import select_default_fetcher
-warnings.filterwarnings("ignore", category=UserWarning, module='bs4')
+
+warnings.filterwarnings("ignore", category=UserWarning, module="bs4")
 
 _q = partial(BeautifulSoup, features="html.parser")
+
 
 def is_absoulte(url):
     """check whether the url is absolute"""
@@ -22,8 +24,10 @@ def with_metaclass(meta, base=object):
     """create a new base for meta class"""
     return meta("NewBase", (base,), {})
 
+
 def hash_html(html):
-    return hashlib.sha256(html.encode('utf-8')).hexdigest()
+    return hashlib.sha256(html.encode("utf-8")).hexdigest()
+
 
 class BaseField(object):
     """Base field."""
@@ -44,8 +48,8 @@ class BaseField(object):
 
     def get_value(self, value):
         """Extract value from given _q element."""
-        raise NotImplementedError(
-            "Custom fields have to implement this method")
+        raise NotImplementedError("Custom fields have to implement this method")
+
 
 class TextField(BaseField):
     """Simple text field.
@@ -74,6 +78,7 @@ class TextField(BaseField):
         except StopIteration:
             return None
 
+
 class AttributeValueField(TextField):
     """Simple text field, getting an attribute value.
     Extract specific attribute value from a tag given by 'selector'.
@@ -83,7 +88,8 @@ class AttributeValueField(TextField):
 
     def __init__(self, selector=None, attr=None, coerce=None, repeated=False):
         super(AttributeValueField, self).__init__(
-            selector=selector, coerce=coerce, repeated=False)
+            selector=selector, coerce=coerce, repeated=False
+        )
         self.attr = attr
         self.repeated = repeated
 
@@ -171,22 +177,25 @@ class SubPageFields(object):
         if not self.link_selector:
             return []
         link_selectors = page_source.select(self.link_selector)
-        links = map(lambda x: x.get('href'), link_selectors)
+        links = map(lambda x: x.get("href"), link_selectors)
         routines = [self._parse_response(instance, link) for link in links]
         results = await asyncio.gather(*routines, return_exceptions=True)
         return results
 
     def __set__(self, obj, value):
-        raise AttributeError('SubPageFields cannot be set.')
+        raise AttributeError("SubPageFields cannot be set.")
 
 
 def get_fields(bases, attrs):
     """get fields from base classes"""
-    fields = [(field_name, attrs.pop(field_name)) for field_name, obj in
-              list(attrs.items()) if isinstance(obj, BaseField)]
+    fields = [
+        (field_name, attrs.pop(field_name))
+        for field_name, obj in list(attrs.items())
+        if isinstance(obj, BaseField)
+    ]
     # add inherited fields
     for base in bases[::-1]:
-        if hasattr(base, '_fields'):
+        if hasattr(base, "_fields"):
             fields = list(base._fields.items()) + fields
     return dict(fields)
 
@@ -194,31 +203,33 @@ def get_fields(bases, attrs):
 class ItemOptions(object):
     """Meta options for an item."""
 
-    DATUM_VALUES = ('selector', 'base_url', 'fetcher')
+    DATUM_VALUES = ("selector", "base_url", "fetcher")
 
     def __init__(self, meta):
-        self.selector = getattr(meta, 'selector', None)
-        self.base_url = getattr(meta, 'base_url', '')
-        _fetcher = getattr(meta, 'fetcher', select_default_fetcher())
+        self.selector = getattr(meta, "selector", None)
+        self.base_url = getattr(meta, "base_url", "")
+        _fetcher = getattr(meta, "fetcher", select_default_fetcher())
         self.fetcher = _fetcher()
-        attrs = getattr(meta, '__dict__', {})
+        attrs = getattr(meta, "__dict__", {})
         self._qkwargs = {}
         for attr, value in attrs.items():
-            if attr not in self.DATUM_VALUES and not attr.startswith('_'):
+            if attr not in self.DATUM_VALUES and not attr.startswith("_"):
                 self._qkwargs[attr] = value
 
 
 class ItemMeta(type):
     """Metaclass for a item."""
+
     def __new__(mcs, name, bases, attrs):
-        attrs['_fields'] = get_fields(bases, attrs)
+        attrs["_fields"] = get_fields(bases, attrs)
         new_class = super(ItemMeta, mcs).__new__(mcs, name, bases, attrs)
-        new_class._meta = ItemOptions(getattr(new_class, 'Meta', None))
+        new_class._meta = ItemOptions(getattr(new_class, "Meta", None))
         return new_class
 
 
 class ItemDoesNotExist(Exception):
     """Item not found"""
+
     pass
 
 
@@ -235,7 +246,7 @@ class Item(with_metaclass(ItemMeta)):
             raise ValueError("Invalid object given to Item (Expecting String or Tag)")
         for field_name, field in self._fields.items():
             value = field.get_value(self._q)
-            clean_field = getattr(self, 'clean_%s' % field_name, None)
+            clean_field = getattr(self, "clean_%s" % field_name, None)
             if clean_field:
                 value = clean_field(value)
             value = field.coerce(value)
@@ -244,7 +255,7 @@ class Item(with_metaclass(ItemMeta)):
 
     def json(self):
         return self.values
-    
+
     @property
     def md5hash(self):
         return hash_html(self._q.html)
@@ -266,7 +277,7 @@ class Item(with_metaclass(ItemMeta)):
         return [cls(item=i) for i in pq_items]
 
     @classmethod
-    async def one(cls, path='', index=0):
+    async def one(cls, path="", index=0):
         """Return ocurrence (the first one, unless specified) of the item."""
         url = urljoin(cls._meta.base_url, path)
         pq_items = await cls._get_items(url=url, **cls._meta._qkwargs)
@@ -276,7 +287,7 @@ class Item(with_metaclass(ItemMeta)):
         return cls(item=item)
 
     @classmethod
-    async def all(cls, path='', **kwargs):
+    async def all(cls, path="", **kwargs):
         """Return all ocurrences of the item."""
         url = urljoin(cls._meta.base_url, path)
         kwargs.update(cls._meta._qkwargs)
