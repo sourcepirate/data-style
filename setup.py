@@ -19,7 +19,7 @@ setup(
     license=LICENSE,
     packages=find_packages(exclude=("tests", "docs")),
     install_requires=[
-        "aiohttp==3.4.4",
+        "aiohttp==3.7.4",
         "untangle==1.1.1",
         "beautifulsoup4==4.6.3",
         "selenium==3.141.0",
