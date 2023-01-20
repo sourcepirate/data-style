@@ -84,7 +84,7 @@ class PhantomProxyFetcher(PhatomJSFetcher):
 
 class UrlFetcher(Fetcher):
     async def on_fetch(self, url, extra):
-        """on data fetch using aiohttp """
+        """on data fetch using aiohttp"""
         result = await urlfetch(url, **extra)
         return result
 

@@ -107,7 +107,7 @@ class AttributeValueField(TextField):
 
 class HtmlField(TextField):
     """Extracting only html content from Output. Implement your own clean
-       method to sanitize the html"""
+    method to sanitize the html"""
 
     def __init__(self, *args, repeated=False, **kwargs):
         super(HtmlField, self).__init__(*args, **kwargs)

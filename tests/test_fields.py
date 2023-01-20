@@ -108,7 +108,7 @@ class TestRelationalField(unittest.TestCase):
 
     def test_get_value_for_related_item(self):
         """test whether the related item takes html from parent
-           and passes it to subitem"""
+        and passes it to subitem"""
         item_mock = MagicMock()
         field = data.RelationalField(item_mock, selector="ul")
         value = field.get_value(self._html)
@@ -138,7 +138,7 @@ class TestDomObjectField(unittest.TestCase):
 
 class TestSubPageFields(unittest.TestCase):
     """Testing subpage fields which queries the other pages
-       for info
+    for info
     """
 
     def setUp(self):
@@ -149,7 +149,7 @@ class TestSubPageFields(unittest.TestCase):
     @async_test
     async def test_sub_page_crawls(self):
         """testing value of async fetch with respect to the given
-           response
+        response
         """
         with patch.object(PhatomJSFetcher, "fetch", new_callable=AsyncMock) as fm:
             fm.return_value = "<ul><li>1</li></ul>"
