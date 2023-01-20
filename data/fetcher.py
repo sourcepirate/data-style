@@ -29,7 +29,9 @@ class Fetcher(object):
             result = await self.on_fetch(parsed_url, extra)
         else:
             loop = loop or asyncio.get_event_loop()
-            result = await loop.run_in_executor(pool, self.on_fetch, parsed_url, extra)
+            result = await loop.run_in_executor(
+                pool, self.on_fetch, parsed_url, extra
+            )
         return result
 
     async def on_fetch(self, url, extra):
@@ -50,7 +52,9 @@ class PhatomJSFetcher(Fetcher):
 
     def on_fetch(self, url, extra):
         """on fetch callback for phatomjs"""
-        driver = webdriver.PhantomJS(desired_capabilities=self.desired_capabilities)
+        driver = webdriver.PhantomJS(
+            desired_capabilities=self.desired_capabilities
+        )
         driver.get(url)
         return driver.page_source
 
@@ -67,7 +71,10 @@ class PhantomProxyFetcher(PhatomJSFetcher):
         proxy_list = extra.get("proxy_list")
         if proxy_list:
             proxy = self.get_proxy(proxy_list)
-            self.service_args = ["--proxy={}".format(proxy), "--proxy-type=https"]
+            self.service_args = [
+                "--proxy={}".format(proxy),
+                "--proxy-type=https",
+            ]
         driver = webdriver.PhantomJS(
             desired_capabilities=self.desired_capabilities,
             service_args=self.service_args,
