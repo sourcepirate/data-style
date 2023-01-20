@@ -37,7 +37,9 @@ def url_concat(url, **args):
     return url
 
 
-async def urlfetch(url="", headers={}, params={}, payload={}, method="GET", loop=None):
+async def urlfetch(
+    url="", headers={}, params={}, payload={}, method="GET", loop=None
+):
     """fetch content from the url"""
     if not url:
         return

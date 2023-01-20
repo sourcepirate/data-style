@@ -48,7 +48,9 @@ class BaseField(object):
 
     def get_value(self, value):
         """Extract value from given _q element."""
-        raise NotImplementedError("Custom fields have to implement this method")
+        raise NotImplementedError(
+            "Custom fields have to implement this method"
+        )
 
 
 class TextField(BaseField):
@@ -107,7 +109,7 @@ class AttributeValueField(TextField):
 
 class HtmlField(TextField):
     """Extracting only html content from Output. Implement your own clean
-       method to sanitize the html"""
+    method to sanitize the html"""
 
     def __init__(self, *args, repeated=False, **kwargs):
         super(HtmlField, self).__init__(*args, **kwargs)
@@ -243,7 +245,9 @@ class Item(with_metaclass(ItemMeta)):
         elif isinstance(item, str):
             self._q = _q(item)
         else:
-            raise ValueError("Invalid object given to Item (Expecting String or Tag)")
+            raise ValueError(
+                "Invalid object given to Item (Expecting String or Tag)"
+            )
         for field_name, field in self._fields.items():
             value = field.get_value(self._q)
             clean_field = getattr(self, "clean_%s" % field_name, None)

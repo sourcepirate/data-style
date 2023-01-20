@@ -5,7 +5,6 @@ from unittest.mock import MagicMock, patch
 from tests.base import async_test, AsyncMock
 from bs4 import BeautifulSoup
 from data import data
-from data.fetcher import Fetcher
 from data.fetcher import PhatomJSFetcher
 from untangle import Element
 
@@ -17,7 +16,9 @@ class TestBaseField(unittest.TestCase):
 
     def setUp(self):
         super(TestBaseField, self).setUp()
-        self._field = data.BaseField(coerce=lambda x: "{}:{}".format(x, "coerce"))
+        self._field = data.BaseField(
+            coerce=lambda x: "{}:{}".format(x, "coerce")
+        )
 
     def test_get_value(self):
         """test get value should be inherited in base fields"""
@@ -40,7 +41,9 @@ class TestTextField(unittest.TestCase):
 
     def setUp(self):
         super(TestTextField, self).setUp()
-        self._html = q("<ul><li attr='big'>1</li><li attr2='small'>2</li></ul>")
+        self._html = q(
+            "<ul><li attr='big'>1</li><li attr2='small'>2</li></ul>"
+        )
 
     def test_get_value_for_noneselector(self):
         """testing the get value to be returning none"""
@@ -63,7 +66,9 @@ class TestAttributeValueField(unittest.TestCase):
 
     def setUp(self):
         super(TestAttributeValueField, self).setUp()
-        self._html = q("<ul><li attr='big'>1</li><li attr2='small'>2</li></ul>")
+        self._html = q(
+            "<ul><li attr='big'>1</li><li attr2='small'>2</li></ul>"
+        )
 
     def test_get_value_for_noneattr(self):
         """testing the get value if no attr is given"""
@@ -77,7 +82,9 @@ class TestAttributeValueField(unittest.TestCase):
 
     def test_get_value_for_domrepeated(self):
         """testing the value if repated property is enabled"""
-        field = data.AttributeValueField(attr="attr", selector="li", repeated=True)
+        field = data.AttributeValueField(
+            attr="attr", selector="li", repeated=True
+        )
         self.assertListEqual(["big", None], field.get_value(self._html))
 
 
@@ -96,7 +103,9 @@ class TestHtmlField(unittest.TestCase):
     def test_get_value_htmlrepeat(self):
         """testing the get value base on html repeat"""
         field = data.HtmlField(selector="li", repeated=True)
-        self.assertListEqual(["<li>1</li>", "<li>2</li>"], field.get_value(self._html))
+        self.assertListEqual(
+            ["<li>1</li>", "<li>2</li>"], field.get_value(self._html)
+        )
 
 
 class TestRelationalField(unittest.TestCase):
@@ -108,7 +117,7 @@ class TestRelationalField(unittest.TestCase):
 
     def test_get_value_for_related_item(self):
         """test whether the related item takes html from parent
-           and passes it to subitem"""
+        and passes it to subitem"""
         item_mock = MagicMock()
         field = data.RelationalField(item_mock, selector="ul")
         value = field.get_value(self._html)
@@ -138,7 +147,7 @@ class TestDomObjectField(unittest.TestCase):
 
 class TestSubPageFields(unittest.TestCase):
     """Testing subpage fields which queries the other pages
-       for info
+    for info
     """
 
     def setUp(self):
@@ -149,9 +158,11 @@ class TestSubPageFields(unittest.TestCase):
     @async_test
     async def test_sub_page_crawls(self):
         """testing value of async fetch with respect to the given
-           response
+        response
         """
-        with patch.object(PhatomJSFetcher, "fetch", new_callable=AsyncMock) as fm:
+        with patch.object(
+            PhatomJSFetcher, "fetch", new_callable=AsyncMock
+        ) as fm:
             fm.return_value = "<ul><li>1</li></ul>"
             item_mock = MagicMock()
             instance_mock = AsyncMock()

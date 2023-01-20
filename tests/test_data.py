@@ -23,6 +23,8 @@ class TestDataItem(unittest.TestCase):
     async def test_my_data_item_is_fetching(self):
         """testing the fetch mock"""
         with patch.object(Fetcher, "fetch", new_callable=AsyncMock) as fm:
-            fm.return_value = "<html><div class='column1'><li>1</li></div></html>"
+            fm.return_value = (
+                "<html><div class='column1'><li>1</li></div></html>"
+            )
             result = await StallMan.one("/")
             self.assertListEqual(result.urgent_items, ["1"])
