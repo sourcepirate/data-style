@@ -1,5 +1,6 @@
 """Asynchronous tests for python"""
 import asyncio
+import inspect
 from unittest.mock import Mock
 
 
@@ -8,10 +9,12 @@ def async_test(func):
 
     def wrapper(*args, **kwargs):
         """inner function"""
-        coro = asyncio.coroutine(func)
-        future = coro(*args, **kwargs)
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(future)
+
+        future = func(*args, **kwargs)
+        if inspect.iscoroutine(future):
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            loop.run_until_complete(future)
 
     return wrapper
 

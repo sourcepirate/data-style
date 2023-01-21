@@ -4,10 +4,10 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-untangle = "*"
-bs4 = "*"
-selenium = "*"
-aiohttp = "*"
+aiohttp=3.7.4
+beautifulsoup4=4.6.3
+selenium=3.141.0
+untangle=1.1.1
 
 [dev-packages]
 
